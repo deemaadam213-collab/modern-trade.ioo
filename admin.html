@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b100e" />
+  <title>إدارة المدرسة — ECUMT 3-01</title>
+  <script>
+    try { const t = localStorage.getItem("ecumt-theme"); if (t) document.documentElement.dataset.theme = t; } catch (_) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="topbar"><div class="topbar__inner">
+    <a class="brand" href="index.html"><span class="brand__text"><strong>المفاهيم الأساسية لبيئة التجارة الحديثة</strong><small>ECUMT 3-01</small></span></a>
+    <nav class="nav" aria-label="التنقل"><a class="nav__link" href="index.html">النواتج</a><a class="nav__link" href="quiz.html">التقييم الذاتي</a></nav>
+    <div class="actions"><span class="auth-nav">أدمن: <span data-student-name>المدرسة</span></span><button class="auth-nav auth-nav--button" type="button" data-logout>خروج</button></div>
+  </div></header>
+
+  <main class="admin-page">
+    <section class="profile-hero">
+      <span class="kicker">لوحة المدرسة</span>
+      <h1>متابعة تقدم الطلاب</h1>
+      <p class="auth-intro">عرض حسابات الطلاب المسجلين وإجابات التقييمات الذاتية المحفوظة.</p>
+      <p class="profile-sync" data-admin-status role="status">بنتحقق من صلاحية الحساب...</p>
+    </section>
+    <section class="admin-content" data-admin-content hidden>
+      <div class="admin-toolbar"><h2>قائمة الطلاب</h2><button class="btn btn--ghost" type="button" data-admin-refresh>تحديث القائمة</button></div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>اسم الطالب</th><th>المعرّف</th><th>إجابات مقالية</th><th>صح وخطأ مجاب</th><th>إجابات صحيحة</th><th>آخر تحديث</th></tr></thead>
+          <tbody data-student-rows></tbody>
+        </table>
+      </div>
+      <p class="admin-empty" data-admin-empty hidden>لسه مفيش طلاب سجلوا دخولهم للموقع.</p>
+    </section>
+    <section class="admin-denied" data-admin-denied hidden>
+      <h2>الحساب ده مش مضاف كأدمن للمدرسة</h2>
+      <p>أضف صلاحية الأدمن من Supabase باستخدام بريد الحساب بعد إنشاء الحساب وتأكيده.</p>
+      <a class="btn btn--primary" href="index.html">العودة للموقع</a>
+    </section>
+  </main>
+  <footer class="footer"><p>بيانات تقدم الطلاب متاحة لحسابات الأدمن المعتمدة فقط.</p></footer>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

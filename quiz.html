@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>التقييمات الذاتية — ECUMT 3-01</title>
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem("ecumt-theme");
+    if (t) document.documentElement.setAttribute("data-theme", t);
+    var l = localStorage.getItem("ecumt-lang");
+    if (l) {
+      document.documentElement.setAttribute("lang", l);
+      document.documentElement.setAttribute("dir", l === "ar" ? "rtl" : "ltr");
+    }
+  } catch (e) {}
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="index.html">
+      <svg class="brand__mark" viewBox="0 0 44 44" aria-hidden="true">
+        <rect x="4" y="4" width="36" height="36" rx="10" class="mark-bg"/>
+        <path d="M13 27 L22 13 L31 27 Z" class="mark-shape"/>
+        <rect x="19.5" y="23" width="5" height="8" rx="1" class="mark-dot"/>
+      </svg>
+      <span class="brand__text">
+        <strong data-i18n="brand_title">المفاهيم الأساسية لبيئة التجارة الحديثة</strong>
+        <small>ECUMT 3-01</small>
+      </span>
+    </a>
+    <nav class="nav" aria-label="main">
+      <a class="nav__link" href="index.html" data-i18n="nav_outcomes">النواتج</a>
+      <a class="nav__link is-active" href="quiz.html" data-i18n="nav_quiz">التقييمات</a>
+    </nav>
+    <div class="actions">
+      <button id="themeBtn" class="iconbtn" type="button" aria-label="theme">
+        <svg class="icon icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="icon icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+      </button>
+      <button id="langBtn" class="langbtn" type="button">EN</button>
+      <a class="auth-nav" href="login.html" data-i18n="nav_login" data-guest-nav>دخول</a>
+      <a class="auth-nav" href="signup.html" data-i18n="nav_signup" data-guest-nav>حساب طالب</a>
+      <a class="auth-nav" href="profile.html" data-account-nav hidden>حسابي: <span data-student-name></span></a>
+      <a class="auth-nav" href="admin.html" data-admin-nav hidden>إدارة المدرسة</a>
+      <button class="auth-nav auth-nav--button" type="button" data-logout hidden>خروج</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="quizhead">
+    <div class="quizhead__inner">
+      <span class="chip" data-i18n="quiz_chip">6 تقييمات ذاتية — من كتيّب التقويمات 2026</span>
+      <h1 data-i18n="quiz_title">التقييمات الذاتية</h1>
+      <p data-i18n="quiz_sub">اكتب إجابتك في مكان الحل أسفل كل سؤال، وحفظك تلقائي في المتصفح. أسئلة صح وخطأ تعطيك نتيجة فورية.</p>
+      <div class="quizhead__meta">
+        <div class="meter">
+          <div class="meter__label"><span data-i18n="meter_open">الأسئلة المفتوحة المُجابة</span><span id="openCount">0/12</span></div>
+          <div class="meter__track"><div class="meter__fill" id="openFill"></div></div>
+        </div>
+        <button id="printBtn" class="btn btn--ghost" type="button" data-i18n="print_btn">طباعة إجاباتي</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="groups">
+
+    <details class="group" open>
+      <summary class="group__head">
+        <span class="group__badge">1</span>
+        <span class="group__title" data-i18n="g1_title">التقييم الذاتي الأول</span>
+        <span class="group__hint" data-i18n="g_open">أسئلة مفتوحة</span>
+      </summary>
+      <div class="group__body">
+        <div class="q" data-q="q1">
+          <p class="q__text" data-i18n="q1">1) ما معنى التجارة الحديثة؟</p>
+          <textarea class="q__input" rows="4" data-store="q1" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+        <div class="q" data-q="q2">
+          <p class="q__text" data-i18n="q2">2) اذكر تقسيمات الشركات التجارية؟</p>
+          <textarea class="q__input" rows="4" data-store="q2" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+        <div class="q" data-q="q3">
+          <p class="q__text" data-i18n="q3">3) اذكر أنواع تجارة التجزئة وفقًا لطبيعة المتجر؟</p>
+          <textarea class="q__input" rows="4" data-store="q3" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+      </div>
+    </details>
+
+    <details class="group" open>
+      <summary class="group__head">
+        <span class="group__badge">2</span>
+        <span class="group__title" data-i18n="g2_title">التقييم الذاتي الثاني</span>
+        <span class="group__hint" data-i18n="g_open">أسئلة مفتوحة</span>
+      </summary>
+      <div class="group__body">
+        <div class="q" data-q="q4">
+          <p class="q__text" data-i18n="q4">1) وضّح أهمية تشكيل الهيكل الوظيفي؟</p>
+          <textarea class="q__input" rows="4" data-store="q4" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+        <div class="q" data-q="q5">
+          <p class="q__text" data-i18n="q5">2) من هم أصحاب المصلحة في تجارة التجزئة؟ اذكر ثلاثة منهم؟</p>
+          <textarea class="q__input" rows="4" data-store="q5" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+      </div>
+    </details>
+
+    <details class="group" open>
+      <summary class="group__head">
+        <span class="group__badge">3</span>
+        <span class="group__title" data-i18n="g3_title">التقييم الذاتي الثالث</span>
+        <span class="group__hint" data-i18n="g_open">أسئلة مفتوحة</span>
+      </summary>
+      <div class="group__body">
+        <div class="q" data-q="q6">
+          <p class="q__text" data-i18n="q6">1) من هم العملاء الأوفياء؟</p>
+          <textarea class="q__input" rows="4" data-store="q6" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+        <div class="q" data-q="q7">
+          <p class="q__text" data-i18n="q7">2) ما أثر الاهتمام بالعملاء الأوفياء والتواصل معهم والاستماع إلى ملاحظاتهم؟</p>
+          <textarea class="q__input" rows="4" data-store="q7" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+        <div class="q" data-q="q8">
+          <p class="q__text" data-i18n="q8">3) قارن بين شرائح العملاء؟</p>
+          <textarea class="q__input" rows="4" data-store="q8" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+        <div class="q" data-q="q9">
+          <p class="q__text" data-i18n="q9">4) كيف يمكن التعامل مع العميل الثرثار والعميل المتشكك؟</p>
+          <textarea class="q__input" rows="4" data-store="q9" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+      </div>
+    </details>
+
+    <details class="group" open>
+      <summary class="group__head">
+        <span class="group__badge">4</span>
+        <span class="group__title" data-i18n="g4_title">التقييم الذاتي الرابع</span>
+        <span class="group__hint" data-i18n="g_open">أسئلة مفتوحة</span>
+      </summary>
+      <div class="group__body">
+        <div class="q" data-q="q10">
+          <p class="q__text" data-i18n="q10">1) اكتب ما تعرفه عن عناصر البيع السبعة 7Ps؟</p>
+          <textarea class="q__input" rows="4" data-store="q10" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+        <div class="q" data-q="q11">
+          <p class="q__text" data-i18n="q11">2) اذكر تأثير عناصر البيع الأربعة على التسويق للمنظومة؟</p>
+          <textarea class="q__input" rows="4" data-store="q11" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+        <div class="q" data-q="q12">
+          <p class="q__text" data-i18n="q12">3) اذكر تأثير الموظف في زيادة البيع وخفض قيمة المشتريات؟</p>
+          <textarea class="q__input" rows="4" data-store="q12" data-i18n-ph="ph_answer" placeholder="اكتب إجابتك هنا..."></textarea>
+        </div>
+      </div>
+    </details>
+
+    <details class="group">
+      <summary class="group__head">
+        <span class="group__badge">5</span>
+        <span class="group__title" data-i18n="g5_title">التقييم الذاتي الخامس</span>
+        <span class="group__hint" data-i18n="g_tf">ضع علامة صح أو خطأ</span>
+      </summary>
+      <div class="group__body">
+        <div class="tf" data-tf="s5q1" data-answer="false">
+          <p class="tf__text" data-i18n="s5q1">1) هيئة سلامة الغذاء هي الجهة المسؤولة عن تحصيل الضرائب الواجب سدادها.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <div class="tf" data-tf="s5q2" data-answer="false">
+          <p class="tf__text" data-i18n="s5q2">2) لا يحتاج متجر بيع التجزئة إلى الحصول على التراخيص أو التسجيل القانوني.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <div class="tf" data-tf="s5q3" data-answer="true">
+          <p class="tf__text" data-i18n="s5q3">3) تهدف قوانين حماية المستهلك إلى حماية حقوق المستهلكين وتضمن المنافسة التجارية العادلة.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <div class="tf" data-tf="s5q4" data-answer="true">
+          <p class="tf__text" data-i18n="s5q4">4) تهدف تعليمات سلامة الغذاء إلى حماية المستهلك من الإصابة بالأمراض المنقولة بواسطة الغذاء أو الإصابة بالتسمم الغذائي.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <p class="tf__score" data-score-for="5"></p>
+      </div>
+    </details>
+
+    <details class="group">
+      <summary class="group__head">
+        <span class="group__badge">6</span>
+        <span class="group__title" data-i18n="g6_title">التقييم الذاتي السادس</span>
+        <span class="group__hint" data-i18n="g_tf">ضع علامة صح أو خطأ</span>
+      </summary>
+      <div class="group__body">
+        <div class="tf" data-tf="s6q1" data-answer="true">
+          <p class="tf__text" data-i18n="s6q1">1) تُعتبر العناصر المؤثرة في الربحية: المبيعات والمشتريات والهالك.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <div class="tf" data-tf="s6q2" data-answer="true">
+          <p class="tf__text" data-i18n="s6q2">2) يتم حساب متوسط المخزون عن طريق جمع قيم المخزون لكل شهر ثم قسمتها على عدد تلك الشهور.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <div class="tf" data-tf="s6q3" data-answer="true">
+          <p class="tf__text" data-i18n="s6q3">3) التكاليف المتغيرة هي تكلفة العمالة أو المواد أو النفقات العامة التي تتغير وفقًا للتغير في حجم وحدات الإنتاج.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <div class="tf" data-tf="s6q4" data-answer="false">
+          <p class="tf__text" data-i18n="s6q4">4) يُعرَّف الانكماش بأنه مقدار الزيادة في المنتجات المجردة.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <div class="tf" data-tf="s6q5" data-answer="false">
+          <p class="tf__text" data-i18n="s6q5">5) صافي الربح = المبيعات − المشتريات فقط.</p>
+          <div class="tf__btns">
+            <button type="button" class="tf__btn" data-val="true" data-i18n="btn_true">صح</button>
+            <button type="button" class="tf__btn" data-val="false" data-i18n="btn_false">خطأ</button>
+          </div>
+          <p class="tf__fb" aria-live="polite"></p>
+        </div>
+        <p class="tf__score" data-score-for="6"></p>
+      </div>
+    </details>
+
+  </section>
+</main>
+
+<footer class="footer">
+  <p class="footer__made" data-i18n="footer_made">صُنع بواسطة <span class="footer__name">آدم محمد</span></p>
+  <p class="footer__super" data-i18n="footer_super">تحت إشراف ميس نسمة، ميس يارا وميس نرمين</p>
+</footer>
+
+<div id="printArea" class="print-area" aria-hidden="true"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

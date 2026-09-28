@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b100e" />
+  <title>حساب الطالب — ECUMT 3-01</title>
+  <script>
+    try { const t = localStorage.getItem("ecumt-theme"); if (t) document.documentElement.dataset.theme = t; } catch (_) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="topbar"><div class="topbar__inner">
+    <a class="brand" href="index.html"><span class="brand__text"><strong>المفاهيم الأساسية لبيئة التجارة الحديثة</strong><small>ECUMT 3-01</small></span></a>
+    <nav class="nav" aria-label="التنقل"><a class="nav__link" href="index.html">النواتج</a><a class="nav__link" href="quiz.html">التقييم الذاتي</a></nav>
+    <div class="actions"><button id="themeBtn" class="iconbtn" type="button" aria-label="تغيير المظهر">◐</button><span class="auth-nav profile-nav-name">حساب: <span data-student-name>الطالب</span></span><a class="auth-nav" href="admin.html" data-admin-nav hidden>إدارة المدرسة</a><button class="auth-nav auth-nav--button" type="button" data-logout>خروج</button></div>
+  </div></header>
+
+  <main class="profile-page">
+    <section class="profile-hero">
+      <span class="kicker">مساحة الطالب</span>
+      <h1>أهلًا، <span data-profile-name>...</span></h1>
+      <p data-profile-email class="auth-intro"></p>
+      <p class="profile-sync" data-sync-status role="status">بنحمّل تقدمك...</p>
+    </section>
+
+    <section class="profile-stats" aria-label="ملخص التقدم">
+      <article class="profile-stat"><span>إجابات الأسئلة المقالية</span><strong><span data-stat-open>0</span><small> / 12</small></strong></article>
+      <article class="profile-stat"><span>إجابات الصح والخطأ</span><strong><span data-stat-tf>0</span><small> / 9</small></strong></article>
+      <article class="profile-stat"><span>الإجابات الصحيحة</span><strong><span data-stat-correct>0</span><small> / 9</small></strong></article>
+    </section>
+
+    <section class="profile-assessments">
+      <h2>نتائج التقييمات</h2>
+      <div class="profile-assessment"><span>التقييم الذاتي الخامس</span><strong data-group-five>0 / 4</strong></div>
+      <div class="profile-assessment"><span>التقييم الذاتي السادس</span><strong data-group-six>0 / 5</strong></div>
+      <a class="btn btn--primary" href="quiz.html">كمّل التقييم الذاتي</a>
+      <a class="btn btn--ghost" href="index.html">ارجع للنواتج</a>
+    </section>
+  </main>
+
+  <footer class="footer"><p>تقدمك محفوظ على حسابك عند تسجيل الدخول.</p></footer>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="profile.js"></script>
+</body>
+</html>
