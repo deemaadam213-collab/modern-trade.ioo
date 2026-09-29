@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>حل الامتحان — ECUMT 3-01</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="topbar"><div class="topbar__inner">
+    <a class="brand" href="index.html"><span class="brand__text"><strong>المفاهيم الأساسية لبيئة التجارة الحديثة</strong><small>ECUMT 3-01</small></span></a>
+    <nav class="nav" aria-label="التنقل"><a class="nav__link" href="exams.html">الامتحانات</a><a class="nav__link" href="index.html">النواتج</a></nav>
+    <div class="actions"><a class="auth-nav" href="profile.html" data-account-nav hidden>حسابي: <span data-student-name></span></a><button class="auth-nav auth-nav--button" type="button" data-logout hidden>خروج</button></div>
+  </div></header>
+  <main class="exam-taking">
+    <p class="exam-status" data-exam-status role="status">بنحمّل الامتحان...</p>
+    <section class="exam-taking__head" data-exam-head hidden><span class="kicker">امتحان</span><h1 data-exam-title></h1><p data-exam-description></p><p class="exam-card__meta" data-exam-timer></p></section>
+    <form data-exam-form hidden><div data-exam-questions></div><button class="btn btn--primary" type="submit">تسليم الامتحان</button></form>
+  </main>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="take-exam.js"></script>
+</body>
+</html>

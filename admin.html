@@ -17,35 +17,63 @@
 <body>
   <header class="topbar"><div class="topbar__inner">
     <a class="brand" href="index.html"><span class="brand__text"><strong>المفاهيم الأساسية لبيئة التجارة الحديثة</strong><small>ECUMT 3-01</small></span></a>
-    <nav class="nav" aria-label="التنقل"><a class="nav__link" href="index.html">النواتج</a><a class="nav__link" href="quiz.html">التقييم الذاتي</a></nav>
+    <nav class="nav" aria-label="التنقل"><a class="nav__link" href="index.html">النواتج</a><a class="nav__link" href="quiz.html">التقييم الذاتي</a><a class="nav__link" href="exams.html">الامتحانات</a></nav>
     <div class="actions"><span class="auth-nav">أدمن: <span data-student-name>المدرسة</span></span><button class="auth-nav auth-nav--button" type="button" data-logout>خروج</button></div>
   </div></header>
 
   <main class="admin-page">
     <section class="profile-hero">
       <span class="kicker">لوحة المدرسة</span>
-      <h1>متابعة تقدم الطلاب</h1>
-      <p class="auth-intro">عرض حسابات الطلاب المسجلين وإجابات التقييمات الذاتية المحفوظة.</p>
+      <h1>إدارة الامتحانات والطلاب</h1>
+      <p class="auth-intro">أنشئ امتحانًا، تابع إجابات الطلاب أثناء الحل، ثم سجّل الدرجة والملاحظات.</p>
       <p class="profile-sync" data-admin-status role="status">بنتحقق من صلاحية الحساب...</p>
     </section>
     <section class="admin-content" data-admin-content hidden>
-      <div class="admin-toolbar"><h2>قائمة الطلاب</h2><button class="btn btn--ghost" type="button" data-admin-refresh>تحديث القائمة</button></div>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead><tr><th>اسم الطالب</th><th>المعرّف</th><th>إجابات مقالية</th><th>صح وخطأ مجاب</th><th>إجابات صحيحة</th><th>آخر تحديث</th></tr></thead>
-          <tbody data-student-rows></tbody>
-        </table>
+      <div class="admin-tabs" role="tablist" aria-label="أقسام الإدارة">
+        <button class="admin-tab is-active" type="button" role="tab" aria-selected="true" data-admin-tab="builder">إنشاء امتحان</button>
+        <button class="admin-tab" type="button" role="tab" aria-selected="false" data-admin-tab="monitor">متابعة الطلاب والدرجات</button>
       </div>
-      <p class="admin-empty" data-admin-empty hidden>لسه مفيش طلاب سجلوا دخولهم للموقع.</p>
+      <section class="admin-panel" data-admin-panel="builder">
+        <h2>امتحان جديد</h2>
+        <form class="admin-form" data-exam-form>
+          <label class="auth-field">اسم الامتحان<input name="title" required maxlength="160" /></label>
+          <label class="auth-field">تعليمات للطلاب<textarea name="description" rows="2" maxlength="1000"></textarea></label>
+          <label class="auth-field admin-duration">المدة بالدقائق (0 بلا مؤقت)<input name="duration" type="number" min="0" max="600" value="0" required /></label>
+          <div class="admin-toolbar"><h3>الأسئلة</h3><button class="btn btn--ghost" type="button" data-add-question>إضافة سؤال</button></div>
+          <div class="admin-question-list" data-question-list></div>
+          <label class="admin-publish"><input type="checkbox" name="published" /> نشر الامتحان للطلاب فورًا</label>
+          <button class="btn btn--primary" type="submit">حفظ الامتحان</button>
+        </form>
+        <div class="admin-created-exams"><h2>الامتحانات الحالية</h2><div data-exam-list></div></div>
+      </section>
+      <section class="admin-panel" data-admin-panel="monitor" hidden>
+        <div class="admin-toolbar"><div><h2>متابعة مباشرة</h2><p class="auth-intro">تتحدث حالة الطلاب تلقائيًا كل عدة ثوانٍ.</p></div><button class="btn btn--ghost" type="button" data-monitor-refresh>تحديث الآن</button></div>
+        <label class="auth-field">اختر الامتحان<select data-monitor-exam><option value="">اختر امتحانًا</option></select></label>
+        <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>اسم الطالب</th><th>الحالة</th><th>الإجابات</th><th>بدأ</th><th>آخر تحديث</th><th>الدرجة</th><th>الإجراء</th></tr></thead><tbody data-attempt-rows></tbody></table></div>
+        <p class="admin-empty" data-attempt-empty hidden>لا يوجد طلاب بدأوا هذا الامتحان حتى الآن.</p>
+        <section class="admin-answer-detail" data-attempt-detail hidden></section>
+      </section>
     </section>
     <section class="admin-denied" data-admin-denied hidden>
       <h2>الحساب ده مش مضاف كأدمن للمدرسة</h2>
-      <p>أضف صلاحية الأدمن من Supabase باستخدام بريد الحساب بعد إنشاء الحساب وتأكيده.</p>
+      <p>أضف صلاحية الأدمن من Supabase بعد إنشاء الحساب وتأكيد البريد، ثم أعد تسجيل الدخول.</p>
       <a class="btn btn--primary" href="index.html">العودة للموقع</a>
     </section>
   </main>
   <footer class="footer"><p>بيانات تقدم الطلاب متاحة لحسابات الأدمن المعتمدة فقط.</p></footer>
-  <script type="module" src="app.js"></script>
+  <template data-question-template>
+    <fieldset class="admin-question">
+      <legend>سؤال جديد</legend>
+      <button class="auth-link admin-remove-question" type="button" data-remove-question aria-label="حذف السؤال">حذف السؤال</button>
+      <label class="auth-field">نص السؤال<textarea data-question-text rows="3" required maxlength="4000"></textarea></label>
+      <div class="admin-question-settings">
+        <label class="auth-field">نوع السؤال<select data-question-type><option value="essay">مقالي</option><option value="short">إجابة قصيرة</option><option value="multiple_choice">اختيار من متعدد</option><option value="true_false">صح أو خطأ</option></select></label>
+        <label class="auth-field">الدرجة<input data-question-points type="number" min="0.01" step="0.25" value="1" required /></label>
+      </div>
+      <label class="auth-field" data-question-options-wrap hidden>الاختيارات (كل اختيار في سطر)<textarea data-question-options rows="3"></textarea></label>
+      <label class="auth-field" data-question-answer-wrap hidden>الإجابة الصحيحة (مفتاح خاص بالأدمن)<input data-question-answer /></label>
+    </fieldset>
+  </template>
   <script type="module" src="admin.js"></script>
 </body>
 </html>

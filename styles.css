@@ -528,6 +528,40 @@ html[data-theme="light"] .icon-sun { display: none; }
 .admin-table td { color: var(--ink); }
 .admin-empty { padding: 18px 0; color: var(--muted); }
 .admin-denied p { margin: 12px 0 18px; color: var(--muted); }
+.admin-tabs { display: flex; gap: 10px; margin: 18px 0; border-bottom: 1px solid var(--line); }
+.admin-tab { padding: 12px 16px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; }
+.admin-tab.is-active { border-bottom-color: var(--brand); color: var(--brand); }
+.admin-panel { padding-top: 8px; }
+.admin-form { max-width: 850px; }
+.admin-duration { max-width: 240px; }
+.admin-question-list { display: grid; gap: 14px; }
+.admin-question { position: relative; margin: 0; padding: 18px; border: 1px solid var(--line); border-radius: 14px; }
+.admin-question legend { padding-inline: 8px; color: var(--brand); font-weight: 700; }
+.admin-remove-question { position: absolute; inset-inline-end: 18px; top: -4px; }
+.admin-question-settings { display: grid; grid-template-columns: minmax(0,1fr) 150px; gap: 14px; }
+.admin-question select, .admin-grade-form input, .admin-grade-form textarea, .admin-form textarea, .admin-form input, .admin-form select { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--ink); font: inherit; }
+.admin-publish { display: flex; align-items: center; gap: 10px; margin: 18px 0; }
+.admin-created-exams { margin-top: 40px; }
+.admin-exam-card { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.admin-exam-card strong { flex: 1 1 180px; }
+.admin-exam-card span { flex: 2 1 220px; color: var(--muted); }
+.admin-answer-detail { margin-top: 22px; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface-2); }
+.admin-answer-list li { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.admin-answer-list li p { margin: 8px 0 0; white-space: pre-wrap; }
+.admin-grade-form { max-width: 520px; margin-top: 24px; }
+.admin-max-grade, .exam-card p, .exam-status { color: var(--muted); }
+.exam-list { display: grid; gap: 14px; max-width: 900px; margin: 28px auto 70px; padding: 0 18px; }
+.exam-card { padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.exam-card h2 { margin: 0 0 8px; }
+.exam-card p { line-height: 1.7; }
+.exam-card__meta { color: var(--brand); font-weight: 700; }
+.exam-card__actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.exam-taking { max-width: 900px; margin: 26px auto 70px; padding: 0 18px; }
+.exam-taking__head, .exam-question { padding: 22px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.exam-question textarea, .exam-question input[type=text] { width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); color: var(--ink); font: inherit; }
+.exam-options { display: grid; gap: 10px; margin-top: 14px; }
+.exam-options label { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+@media (max-width: 620px) { .admin-question-settings { grid-template-columns: 1fr; gap: 0; } .admin-tabs { overflow-x: auto; } }
 
 @media (max-width: 620px) {
   .auth-page { padding: 34px 14px 48px; }

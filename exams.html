@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>امتحانات الطلاب — ECUMT 3-01</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="topbar"><div class="topbar__inner">
+    <a class="brand" href="index.html"><span class="brand__text"><strong>المفاهيم الأساسية لبيئة التجارة الحديثة</strong><small>ECUMT 3-01</small></span></a>
+    <nav class="nav" aria-label="التنقل"><a class="nav__link" href="index.html">النواتج</a><a class="nav__link" href="quiz.html">التقييم الذاتي</a><a class="nav__link is-active" href="exams.html">الامتحانات</a></nav>
+    <div class="actions"><a class="auth-nav" href="profile.html" data-account-nav hidden>حسابي: <span data-student-name></span></a><a class="auth-nav" href="admin.html">إدارة المدرسة</a><a class="auth-nav" href="login.html" data-guest-nav>دخول</a><button class="auth-nav auth-nav--button" type="button" data-logout hidden>خروج</button></div>
+  </div></header>
+  <main>
+    <section class="quizhead"><div class="quizhead__inner"><span class="chip">الامتحانات المنشورة</span><h1>امتحانات الوحدة</h1><p>ابدأ الامتحان أو أكمل المحاولة المفتوحة. تُحفظ إجاباتك تلقائيًا ويستطيع المعلم متابعة التقدم.</p></div></section>
+    <p class="exam-status" data-exams-status role="status" style="text-align:center;padding:16px">بنحمّل الامتحانات...</p>
+    <section class="exam-list" data-exam-list aria-live="polite"></section>
+  </main>
+  <footer class="footer"><p>تظهر هنا الامتحانات التي نشرها المعلم.</p></footer>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="exam-list.js"></script>
+</body>
+</html>
