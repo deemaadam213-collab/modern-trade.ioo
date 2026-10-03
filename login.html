@@ -62,12 +62,12 @@
 
   function fail(msg) { error.textContent = msg; error.hidden = false; }
 
-  function go(profile) {
-    location.href = profile && profile.role === "teacher" ? "admin.html" : "index.html";
+  function go(role) {
+    location.href = role === "teacher" ? "admin.html" : "index.html";
   }
 
   if (!E.client) fail("الموقع لسه مش متوصل بقاعدة البيانات. راجع ملف config.js.");
-  else E.ready.then(function (s) { if (s) go(s.profile); });
+  else E.ready.then(function (s) { if (s) go(s.profile.role); });
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -78,15 +78,24 @@
     if (!u || !p) return fail("اكتب اسم المستخدم والباسورد.");
 
     btn.disabled = true;
-    E.client.auth.signInWithPassword({ email: E.toEmail(u), password: p }).then(function (r) {
-      if (r.error || !r.data.user) {
+    E.hashPassword(u, p).then(function (hash) {
+      return E.client.rpc("login_user", { p_username: u, p_password_hash: hash });
+    }).then(function (r) {
+      if (r.error || !r.data || !r.data.length) {
         btn.disabled = false;
+        if (r.error) console.error("LOGIN ERROR:", r.error);
         fail("اليوزرنيم أو الباسورد غلط، حاول تاني.");
         document.getElementById("loginPass").value = "";
         return;
       }
-      E.getProfile(r.data.user.id).then(go, function () { go(null); });
-    }, function () { btn.disabled = false; fail("حصلت مشكلة في الاتصال، جرب تاني."); });
+      var row = r.data[0];
+      E.setSession({ id: row.id, username: u.toLowerCase(), display_name: row.display_name, role: row.role });
+      go(row.role);
+    }, function (err) {
+      console.error("LOGIN NETWORK ERROR:", err);
+      btn.disabled = false;
+      fail("حصلت مشكلة في الاتصال، جرب تاني.");
+    });
   });
 })();
 </script>
