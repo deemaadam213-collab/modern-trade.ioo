@@ -1,266 +1,191 @@
-import { hasSchoolAdminRole, loadStudentProgress, supabase } from "./supabase-client.js";
+/* ECUMT 3-01 — teacher dashboard */
+(function () {
+  "use strict";
+  var E = window.ECUMT;
+  if (!E || !E.client) return;
 
-const status = document.querySelector("[data-admin-status]");
-const content = document.querySelector("[data-admin-content]");
-const denied = document.querySelector("[data-admin-denied]");
-const questionList = document.querySelector("[data-question-list]");
-const questionTemplate = document.querySelector("[data-question-template]");
-const examList = document.querySelector("[data-exam-list]");
-const monitorSelect = document.querySelector("[data-monitor-exam]");
-const attemptRows = document.querySelector("[data-attempt-rows]");
-const attemptEmpty = document.querySelector("[data-attempt-empty]");
-const attemptDetail = document.querySelector("[data-attempt-detail]");
-let allExams = [];
-let selectedExamId = "";
-let realtimeChannel = null;
+  var listView = document.getElementById("listView");
+  var reviewView = document.getElementById("reviewView");
+  var statsEl = document.getElementById("stats");
+  var tbody = document.getElementById("rows");
+  var emptyEl = document.getElementById("emptyMsg");
+  var fExam = document.getElementById("fExam");
+  var fStatus = document.getElementById("fStatus");
+  var fSearch = document.getElementById("fSearch");
 
-const say = (message, type = "") => {
-  status.textContent = message;
-  status.dataset.type = type;
-};
-const stamp = (value) => value ? new Date(value).toLocaleString("ar-EG") : "—";
-const cell = (value) => { const node = document.createElement("td"); node.textContent = value; return node; };
+  var all = [];
 
-function setQuestionType(fieldset) {
-  const type = fieldset.querySelector("[data-question-type]").value;
-  const optionsWrap = fieldset.querySelector("[data-question-options-wrap]");
-  const answerWrap = fieldset.querySelector("[data-question-answer-wrap]");
-  const optionsInput = fieldset.querySelector("[data-question-options]");
-  const answerInput = fieldset.querySelector("[data-question-answer]");
-  const objective = type === "multiple_choice" || type === "true_false";
-  optionsWrap.hidden = !objective;
-  answerWrap.hidden = !objective;
-  optionsInput.required = type === "multiple_choice";
-  answerInput.required = objective;
-  optionsInput.readOnly = type === "true_false";
-  if (type === "true_false") {
-    optionsInput.value = "صح\nخطأ";
-    answerInput.placeholder = "اكتب صح أو خطأ";
-  } else if (type === "multiple_choice") {
-    if (optionsInput.value === "صح\nخطأ") optionsInput.value = "";
-    answerInput.placeholder = "اكتب نص الاختيار الصحيح";
-  } else {
-    optionsInput.value = "";
-    answerInput.value = "";
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
   }
-}
 
-function addQuestion() {
-  const fragment = questionTemplate.content.cloneNode(true);
-  const fieldset = fragment.querySelector(".admin-question");
-  fieldset.querySelector("[data-question-type]").addEventListener("change", () => setQuestionType(fieldset));
-  fieldset.querySelector("[data-remove-question]").addEventListener("click", () => {
-    if (questionList.children.length > 1) fieldset.remove();
-    else say("لازم تضيف سؤالًا واحدًا على الأقل.", "error");
-  });
-  questionList.append(fragment);
-}
+  function finalScore(s) { return s.teacher_correct !== null ? s.teacher_correct : s.correct; }
+  function nameOf(s) { return (s.profiles && s.profiles.display_name) || "—"; }
 
-function collectQuestions() {
-  return Array.from(questionList.querySelectorAll(".admin-question")).map((fieldset) => {
-    const type = fieldset.querySelector("[data-question-type]").value;
-    const optionsText = fieldset.querySelector("[data-question-options]").value;
-    const options = type === "multiple_choice"
-      ? optionsText.split(/\r?\n/).map((item) => item.trim()).filter(Boolean)
-      : type === "true_false" ? ["صح", "خطأ"] : [];
-    let correctAnswer = fieldset.querySelector("[data-question-answer]").value.trim();
-    if (type === "true_false") {
-      const normalized = correctAnswer.toLowerCase();
-      correctAnswer = ["صح", "true"].includes(normalized) ? "true" : ["خطأ", "خطا", "false"].includes(normalized) ? "false" : "";
+  function renderStats() {
+    var students = {};
+    var pending = 0;
+    all.forEach(function (s) { students[s.user_id] = 1; if (!s.reviewed) pending++; });
+    statsEl.textContent = "";
+    [["عدد المحاولات", all.length], ["طلاب حلوا امتحانات", Object.keys(students).length], ["لسه محتاجة مراجعة", pending]]
+      .forEach(function (p) {
+        var c = el("div", "stat");
+        c.appendChild(el("b", "stat__n", String(p[1])));
+        c.appendChild(el("span", "stat__l", p[0]));
+        statsEl.appendChild(c);
+      });
+  }
+
+  function renderRows() {
+    var q = fSearch.value.trim().toLowerCase();
+    var rows = all.filter(function (s) {
+      if (fExam.value && s.exam_id !== fExam.value) return false;
+      if (fStatus.value === "pending" && s.reviewed) return false;
+      if (fStatus.value === "reviewed" && !s.reviewed) return false;
+      if (q && nameOf(s).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    tbody.textContent = "";
+    emptyEl.hidden = rows.length > 0;
+    rows.forEach(function (s) {
+      var tr = document.createElement("tr");
+      tr.appendChild(el("td", "", nameOf(s)));
+      tr.appendChild(el("td", "", E.examName(s.exam_id)));
+      tr.appendChild(el("td", "", s.correct + " / " + s.total));
+      var fin = el("td", "", s.teacher_correct !== null ? s.teacher_correct + " / " + s.total : "—");
+      tr.appendChild(fin);
+      tr.appendChild(el("td", "", E.formatDate(s.created_at)));
+      var st = el("td");
+      st.appendChild(el("span", "pill" + (s.reviewed ? " pill--ok" : ""), s.reviewed ? "تمت المراجعة" : "بانتظار المراجعة"));
+      tr.appendChild(st);
+      var act = el("td");
+      var b = el("button", "btn btn--ghost btn--sm", "مراجعة");
+      b.type = "button";
+      b.addEventListener("click", function () { openReview(s); });
+      act.appendChild(b);
+      tr.appendChild(act);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function load() {
+    E.client.from("submissions")
+      .select("id, user_id, exam_id, total, correct, answers, reviewed, teacher_correct, teacher_marks, teacher_note, created_at, profiles(display_name, username)")
+      .order("created_at", { ascending: false }).limit(500)
+      .then(function (r) {
+        if (r.error) {
+          emptyEl.hidden = false;
+          emptyEl.textContent = "مقدرناش نحمل البيانات. اتأكد إنك داخل بحساب المعلم.";
+          return;
+        }
+        all = r.data || [];
+        renderStats();
+        renderRows();
+      });
+  }
+
+  function openReview(s) {
+    listView.hidden = true;
+    reviewView.hidden = false;
+    reviewView.textContent = "";
+    window.scrollTo({ top: 0 });
+
+    var answers = Array.isArray(s.answers) ? s.answers : [];
+    var marks = answers.map(function (a, i) {
+      return Array.isArray(s.teacher_marks) && typeof s.teacher_marks[i] === "boolean" ? s.teacher_marks[i] : !!a.ok;
+    });
+
+    var top = el("div", "review__top");
+    var back = el("button", "btn btn--ghost", "رجوع للقايمة");
+    back.type = "button";
+    back.addEventListener("click", function () { reviewView.hidden = true; listView.hidden = false; });
+    top.appendChild(back);
+    reviewView.appendChild(top);
+
+    var head = el("div", "block");
+    head.appendChild(el("h2", "block__title", nameOf(s) + " — " + E.examName(s.exam_id)));
+    head.appendChild(el("p", "", "اتحل بتاريخ " + E.formatDate(s.created_at) + ". التصحيح التلقائي: " + s.correct + " من " + s.total + "."));
+    var scoreLine = el("p", "review__score");
+    head.appendChild(scoreLine);
+    reviewView.appendChild(head);
+
+    function updateScore() {
+      var n = marks.filter(Boolean).length;
+      scoreLine.textContent = "الدرجة بعد مراجعتك: " + n + " / " + answers.length;
+      return n;
     }
-    if (type === "multiple_choice" && !options.includes(correctAnswer)) {
-      throw new Error("اكتب الإجابة الصحيحة بنفس نص أحد الاختيارات.");
-    }
-    if (type === "multiple_choice" && options.length < 2) throw new Error("سؤال الاختيار من متعدد يحتاج اختيارين على الأقل.");
-    if ((type === "multiple_choice" || type === "true_false") && !correctAnswer) throw new Error("حدد الإجابة الصحيحة لكل سؤال موضوعي.");
-    return {
-      text: fieldset.querySelector("[data-question-text]").value.trim(),
-      type,
-      points: Number(fieldset.querySelector("[data-question-points]").value),
-      options,
-      correct_answer: correctAnswer
-    };
-  });
-}
 
-async function loadExams() {
-  const { data, error } = await supabase.from("school_exams")
-    .select("id,title,description,duration_minutes,is_published,created_at")
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  allExams = data || [];
-  renderExams();
-}
+    answers.forEach(function (a, i) {
+      var card = el("section", "qcard");
+      var h = el("div", "qcard__head");
+      h.appendChild(el("span", "qcard__n", String(i + 1)));
+      h.appendChild(el("span", "qcard__kind", a.t === "mcq" ? "اختيار من متعدد" : a.t === "tf" ? "صح أو غلط" : "أكمل"));
+      card.appendChild(h);
+      card.appendChild(el("p", "qcard__text", a.q));
+      card.appendChild(el("p", "ans__given", "إجابة الطالب: " + (a.given || "(بدون إجابة)")));
+      card.appendChild(el("p", "ans__correct", "الإجابة النموذجية: " + a.correct_text));
+      card.appendChild(el("p", "ans__auto", "التصحيح التلقائي: " + (a.ok ? "صحيحة" : "غير صحيحة")));
 
-function renderExams() {
-  examList.replaceChildren();
-  monitorSelect.replaceChildren(new Option("اختر امتحانًا", ""));
-  allExams.forEach((exam) => {
-    const card = document.createElement("article");
-    card.className = "admin-exam-card";
-    const title = document.createElement("strong");
-    title.textContent = exam.title;
-    const meta = document.createElement("span");
-    meta.textContent = `${exam.is_published ? "منشور" : "مسودة"} · ${exam.duration_minutes ? `${exam.duration_minutes} دقيقة` : "بلا مؤقت"} · ${stamp(exam.created_at)}`;
-    const monitorButton = document.createElement("button");
-    monitorButton.className = "btn btn--ghost";
-    monitorButton.type = "button";
-    monitorButton.textContent = "متابعة الطلاب";
-    monitorButton.addEventListener("click", () => {
-      document.querySelector('[data-admin-tab="monitor"]').click();
-      monitorSelect.value = exam.id;
-      monitorSelect.dispatchEvent(new Event("change"));
+      var lab = el("label", "qopt ans__mark");
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = marks[i];
+      cb.addEventListener("change", function () {
+        marks[i] = cb.checked;
+        card.classList.toggle("is-right", cb.checked);
+        card.classList.toggle("is-wrong", !cb.checked);
+        updateScore();
+      });
+      lab.appendChild(cb);
+      lab.appendChild(el("span", "qopt__text", "احسبها إجابة صحيحة"));
+      card.appendChild(lab);
+      card.classList.add(marks[i] ? "is-right" : "is-wrong");
+      reviewView.appendChild(card);
     });
-    card.append(title, meta, monitorButton);
-    examList.append(card);
-    monitorSelect.add(new Option(`${exam.title}${exam.is_published ? "" : " (مسودة)"}`, exam.id));
-  });
-  if (!allExams.length) examList.textContent = "لم تنشئ امتحانات بعد.";
-  if (selectedExamId && allExams.some((exam) => exam.id === selectedExamId)) monitorSelect.value = selectedExamId;
-}
 
-async function refreshAttempts() {
-  if (!selectedExamId) {
-    attemptRows.replaceChildren();
-    attemptDetail.hidden = true;
-    attemptEmpty.hidden = false;
-    return;
-  }
-  const [{ data: attempts, error }, { data: questions, error: qError }] = await Promise.all([
-    supabase.from("school_exam_attempts").select("id,student_id,student_name,status,answers,started_at,submitted_at,updated_at")
-      .eq("exam_id", selectedExamId).order("updated_at", { ascending: false }),
-    supabase.from("school_exam_questions").select("id,question_text,question_type,points,order_index")
-      .eq("exam_id", selectedExamId).order("order_index")
-  ]);
-  if (error || qError) {
-    say("تعذر تحميل محاولات الامتحان. شغّل ملف exam-system.sql في Supabase.", "error");
-    return;
-  }
-  const rows = attempts || [];
-  const ids = rows.map((row) => row.id);
-  let grades = [];
-  if (ids.length) {
-    const result = await supabase.from("school_exam_grades").select("attempt_id,score,feedback,graded_at").in("attempt_id", ids);
-    if (result.error) { say("تعذر تحميل الدرجات المحفوظة.", "error"); return; }
-    grades = result.data || [];
-  }
-  const gradeByAttempt = new Map(grades.map((grade) => [grade.attempt_id, grade]));
-  const totalQuestions = (questions || []).length;
-  attemptRows.replaceChildren();
-  rows.forEach((attempt) => {
-    const answered = (questions || []).filter((question) => String(attempt.answers?.[question.id] ?? "").trim()).length;
-    const grade = gradeByAttempt.get(attempt.id);
-    const tr = document.createElement("tr");
-    tr.append(cell(attempt.student_name || "طالب"), cell(attempt.status === "submitted" ? "سلّم الامتحان" : "يمتحن الآن"),
-      cell(`${answered} / ${totalQuestions}`), cell(stamp(attempt.started_at)), cell(stamp(attempt.updated_at)),
-      cell(grade ? `${grade.score} درجة` : "لم تُرصد"));
-    const action = document.createElement("td");
-    const view = document.createElement("button");
-    view.type = "button"; view.className = "btn btn--ghost"; view.textContent = "الإجابات / الدرجة";
-    view.addEventListener("click", () => renderAttemptDetail(attempt, questions || [], grade));
-    action.append(view); tr.append(action); attemptRows.append(tr);
-  });
-  attemptEmpty.hidden = rows.length !== 0;
-  say(`متابعة ${allExams.find((item) => item.id === selectedExamId)?.title || "الامتحان"}: ${rows.length} طالب بدأوا الامتحان.`, "success");
-}
-
-function renderAttemptDetail(attempt, questions, grade) {
-  attemptDetail.replaceChildren();
-  attemptDetail.hidden = false;
-  const heading = document.createElement("h3"); heading.textContent = `إجابات ${attempt.student_name || "الطالب"}`;
-  attemptDetail.append(heading);
-  const list = document.createElement("ol"); list.className = "admin-answer-list";
-  let maximum = 0;
-  questions.forEach((question) => {
-    maximum += Number(question.points || 0);
-    const item = document.createElement("li");
-    const prompt = document.createElement("strong"); prompt.textContent = `${question.question_text} (${question.points} درجة)`;
-    const answer = document.createElement("p"); answer.textContent = String(attempt.answers?.[question.id] || "لم يُجب");
-    item.append(prompt, answer); list.append(item);
-  });
-  attemptDetail.append(list);
-  const form = document.createElement("form"); form.className = "admin-grade-form";
-  form.innerHTML = '<label class="auth-field">الدرجة النهائية<input name="score" type="number" min="0" step="0.25" required /></label><label class="auth-field">ملاحظة للطالب<textarea name="feedback" rows="2" maxlength="2000"></textarea></label><button class="btn btn--primary" type="submit">حفظ الدرجة</button>';
-  form.elements.score.max = String(maximum);
-  form.elements.score.value = grade ? String(grade.score) : "";
-  form.elements.feedback.value = grade?.feedback || "";
-  const maxNote = document.createElement("p"); maxNote.className = "admin-max-grade"; maxNote.textContent = `الدرجة النهائية من ${maximum}`;
-  form.prepend(maxNote);
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const button = form.querySelector("button[type=submit]"); button.disabled = true;
-    const { error } = await supabase.rpc("school_exam_save_grade", {
-      p_attempt: attempt.id, p_score: Number(form.elements.score.value), p_feedback: form.elements.feedback.value.trim()
+    var noteBox = el("div", "block");
+    noteBox.appendChild(el("label", "auth-field", "ملاحظة للطالب (اختياري)"));
+    var note = document.createElement("textarea");
+    note.className = "qfill";
+    note.rows = 3;
+    note.value = s.teacher_note || "";
+    noteBox.lastChild.appendChild(note);
+    var status = el("p", "review__status");
+    var save = el("button", "btn btn--primary", "حفظ المراجعة");
+    save.type = "button";
+    save.addEventListener("click", function () {
+      var n = updateScore();
+      save.disabled = true;
+      status.textContent = "جاري الحفظ...";
+      E.client.from("submissions").update({
+        teacher_marks: marks,
+        teacher_correct: n,
+        teacher_note: note.value.trim() || null,
+        reviewed: true,
+        reviewed_at: new Date().toISOString()
+      }).eq("id", s.id).then(function (r) {
+        save.disabled = false;
+        if (r.error) { status.textContent = "حصل خطأ في الحفظ، جرب تاني."; return; }
+        s.teacher_marks = marks; s.teacher_correct = n; s.teacher_note = note.value.trim() || null; s.reviewed = true;
+        status.textContent = "اتحفظت المراجعة. الطالب هيشوف الدرجة النهائية، والمتصدرين بتتحدث.";
+        renderStats();
+        renderRows();
+      });
     });
-    button.disabled = false;
-    if (error) { say("تعذر حفظ الدرجة. تأكد أنها لا تتجاوز الدرجة النهائية.", "error"); return; }
-    say(`تم حفظ درجة ${attempt.student_name || "الطالب"}.`, "success");
-    await refreshAttempts();
-    const updated = await supabase.from("school_exam_grades").select("attempt_id,score,feedback,graded_at").eq("attempt_id", attempt.id).maybeSingle();
-    renderAttemptDetail(attempt, questions, updated.data || null);
-  });
-  attemptDetail.append(form);
-}
-
-async function selectExam() {
-  selectedExamId = monitorSelect.value;
-  attemptDetail.hidden = true;
-  if (realtimeChannel) await supabase.removeChannel(realtimeChannel);
-  if (selectedExamId) {
-    realtimeChannel = supabase.channel(`school-exam-${selectedExamId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "school_exam_attempts", filter: `exam_id=eq.${selectedExamId}` }, () => refreshAttempts())
-      .subscribe();
+    noteBox.appendChild(save);
+    noteBox.appendChild(status);
+    reviewView.appendChild(noteBox);
+    updateScore();
   }
-  await refreshAttempts();
-}
 
-document.querySelectorAll("[data-admin-tab]").forEach((tab) => tab.addEventListener("click", () => {
-  document.querySelectorAll("[data-admin-tab]").forEach((button) => {
-    const active = button === tab; button.classList.toggle("is-active", active); button.setAttribute("aria-selected", String(active));
+  [fExam, fStatus].forEach(function (n) { n.addEventListener("change", renderRows); });
+  fSearch.addEventListener("input", renderRows);
+
+  E.ready.then(function (s) {
+    if (!s || !s.profile || s.profile.role !== "teacher") return;
+    load();
   });
-  document.querySelectorAll("[data-admin-panel]").forEach((panel) => { panel.hidden = panel.dataset.adminPanel !== tab.dataset.adminTab; });
-}));
-document.querySelector("[data-add-question]").addEventListener("click", addQuestion);
-document.querySelector("[data-monitor-refresh]").addEventListener("click", refreshAttempts);
-monitorSelect.addEventListener("change", selectExam);
-document.querySelector("[data-exam-form]").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  if (!form.reportValidity()) return;
-  const button = form.querySelector("button[type=submit]"); button.disabled = true;
-  try {
-    const questions = collectQuestions();
-    const publishNow = form.elements.published.checked;
-    const { data, error } = await supabase.rpc("school_exam_create", {
-      p_title: form.elements.title.value.trim(), p_description: form.elements.description.value.trim(),
-      p_duration: Number(form.elements.duration.value), p_publish: publishNow, p_questions: questions
-    });
-    if (error) throw error;
-    form.reset(); questionList.replaceChildren(); addQuestion();
-    await loadExams();
-    say(publishNow ? "تم إنشاء الامتحان ونشره." : "تم حفظ الامتحان كمسودة.", "success");
-    if (data) { monitorSelect.value = data; await selectExam(); }
-  } catch (error) {
-    say(error.message?.includes("school_exam_create") ? "قاعدة بيانات الامتحانات تحتاج تشغيل exam-system.sql في Supabase." : error.message || "تعذر حفظ الامتحان.", "error");
-  } finally { button.disabled = false; }
-});
-
-document.querySelector("[data-logout]")?.addEventListener("click", async (event) => {
-  event.currentTarget.disabled = true;
-  if (supabase) await supabase.auth.signOut();
-  window.location.replace("index.html");
-});
-
-addQuestion();
-const { user } = await loadStudentProgress();
-if (!user) {
-  window.location.replace("login.html");
-} else if (!(await hasSchoolAdminRole(user.id))) {
-  say("الصلاحية غير مفعلة لهذا الحساب.", "error"); denied.hidden = false;
-} else {
-  document.querySelector("[data-student-name]").textContent = user.user_metadata?.full_name || user.email?.split("@")[0] || "المدرسة";
-  content.hidden = false;
-  try { await loadExams(); }
-  catch (error) { say("تعذر تحميل البيانات. تأكد من إعداد قاعدة البيانات ومنح صلاحية الأدمن.", "error"); }
-  window.setInterval(() => { if (selectedExamId && !document.hidden) refreshAttempts(); }, 10000);
-}
+})();

@@ -12,11 +12,6 @@
   } catch (e) {}
 })();
 </script>
-<script>
-try {
-  if (sessionStorage.getItem("ecumt-login") === "1") location.replace("index.html");
-} catch (e) {}
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -58,54 +53,64 @@ try {
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
 <script>
 (function () {
   "use strict";
-
+  var E = window.ECUMT;
   var form = document.getElementById("signupForm");
   var error = document.getElementById("signupError");
-
-  function loadUsers() {
-    try { return JSON.parse(localStorage.getItem("ecumt-users") || "{}"); }
-    catch (e) { return {}; }
-  }
+  var btn = form.querySelector("button[type=submit]");
 
   function fail(msg, el) {
     error.textContent = msg;
     error.hidden = false;
+    btn.disabled = false;
     if (el) el.focus();
   }
+
+  if (!E.client) fail("الموقع لسه مش متوصل بقاعدة البيانات. راجع ملف config.js.");
+  else E.ready.then(function (s) { if (s) location.replace("index.html"); });
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     error.hidden = true;
+    if (!E.client) return fail("الموقع لسه مش متوصل بقاعدة البيانات.");
 
     var userEl = document.getElementById("signupUser");
     var passEl = document.getElementById("signupPass");
     var pass2El = document.getElementById("signupPass2");
-
     var u = userEl.value.trim();
     var p = passEl.value;
-    var p2 = pass2El.value;
 
     if (u.length < 2) return fail("اكتب اسم مستخدم من حرفين على الأقل.", userEl);
+    if (u.indexOf("@") !== -1) return fail("اسم المستخدم مينفعش يحتوي على @.", userEl);
+    if (p.length < 6) return fail("الباسورد لازم يكون 6 حروف على الأقل.", passEl);
+    if (p !== pass2El.value) return fail("الباسوردين مش متطابقين، راجعهم.", pass2El);
 
-    var users = loadUsers();
-    if (Object.prototype.hasOwnProperty.call(users, u.toLowerCase())) {
-      return fail("اليوزرنيم ده موجود قبل كده، اختار غيره.", userEl);
-    }
-
-    if (p.length < 4) return fail("الباسورد لازم يكون 4 حروف على الأقل.", passEl);
-    if (p !== p2) return fail("الباسوردين مش متطابقين، راجعهم.", pass2El);
-
-    users[u.toLowerCase()] = { name: u, password: p };
-    try { localStorage.setItem("ecumt-users", JSON.stringify(users)); } catch (err) {}
-
-    try { sessionStorage.setItem("ecumt-login", "1"); } catch (err) {}
-    location.href = "index.html";
+    btn.disabled = true;
+    E.client.auth.signUp({ email: E.toEmail(u), password: p }).then(function (r) {
+      if (r.error) {
+        if (/registered|exists/i.test(r.error.message)) return fail("اليوزرنيم ده موجود قبل كده، اختار غيره.", userEl);
+        return fail("معرفناش نعمل الحساب. جرب تاني.", userEl);
+      }
+      if (!r.data.session) return fail("الحساب اتعمل بس محتاج تأكيد. المعلم لازم يقفل Confirm email من إعدادات Supabase.");
+      return E.client.from("profiles").insert({ id: r.data.user.id, username: u.toLowerCase(), display_name: u })
+        .then(function (pr) {
+          if (pr.error) {
+            return E.client.auth.signOut().then(function () {
+              fail(pr.error.code === "23505" ? "اليوزرنيم ده موجود قبل كده، اختار غيره." : "معرفناش نكمل إنشاء الحساب. جرب تاني.", userEl);
+            });
+          }
+          location.href = "index.html";
+        });
+    }, function () { fail("حصلت مشكلة في الاتصال، جرب تاني."); });
   });
 })();
 </script>
+
 
 </body>
 </html>

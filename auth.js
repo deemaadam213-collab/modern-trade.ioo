@@ -1,108 +1,97 @@
-import { supabase } from "./supabase-client.js";
+/* ECUMT 3-01 — Supabase client, session, helpers */
+(function () {
+  "use strict";
 
-const form = document.querySelector("[data-auth-form]");
-const updateForm = document.querySelector("[data-password-update]");
-const message = document.querySelector("[data-auth-message]");
-const submitButton = form?.querySelector('button[type="submit"]') || updateForm?.querySelector('button[type="submit"]');
-const resetButton = document.querySelector("[data-password-reset]");
+  var cfg = window.ECUMT_CONFIG || {};
+  var configured = !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY &&
+    cfg.SUPABASE_URL.indexOf("YOUR_") === -1 && cfg.SUPABASE_ANON_KEY.indexOf("YOUR_") === -1);
 
-const messages = {
-  "Invalid login credentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
-  "User already registered": "هذا البريد مسجّل بالفعل. جرّب تسجيل الدخول.",
-  "Password should be at least 6 characters": "كلمة المرور يجب ألا تقل عن 6 أحرف.",
-  "Email not confirmed": "أكد بريدك الإلكتروني من الرسالة التي وصلتك، ثم سجّل الدخول.",
-  "Failed to fetch": "تعذّر الاتصال بالخدمة. تحقّق من الإنترنت وإعدادات المشروع."
-};
+  var client = null;
+  if (configured && window.supabase) {
+    client = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
+      auth: { storageKey: "ecumt-auth", persistSession: true, autoRefreshToken: true }
+    });
+  }
 
-function showMessage(text, type = "error") {
-  if (!message) return;
-  message.textContent = text;
-  message.dataset.type = type;
-  message.hidden = false;
-}
+  var E = window.ECUMT = { client: client, configured: !!client };
 
-if (!supabase) {
-  showMessage("التسجيل يحتاج ربط الموقع بمشروع Supabase. راجع SUPABASE-SETUP.md ثم ضع رابط المشروع والمفتاح العام في supabase-config.js.");
-  if (submitButton) submitButton.disabled = true;
-  if (resetButton) resetButton.disabled = true;
-} else {
-  const client = supabase;
+  /* usernames can be Arabic, so they are encoded into a safe email address */
+  E.toEmail = function (input) {
+    var v = String(input || "").trim().toLowerCase();
+    if (v.indexOf("@") !== -1) return v;
+    var bytes = new TextEncoder().encode(v), hex = "";
+    for (var i = 0; i < bytes.length; i++) hex += ("0" + bytes[i].toString(16)).slice(-2);
+    return "u" + hex + "@students.ecumt.app";
+  };
 
-  form?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!form.reportValidity()) return;
-    message.hidden = true;
-    submitButton.disabled = true;
+  E.examName = function (id) {
+    var n = { "1": "الأول", "2": "الثاني", "3": "الثالث", "4": "الرابع", "5": "الخامس" };
+    return id === "all" ? "الامتحان الشامل" : "امتحان الناتج " + (n[id] || id);
+  };
+
+  E.formatDate = function (iso) {
     try {
-      const email = form.elements.email.value.trim();
-      const password = form.elements.password.value;
-      if (form.dataset.mode === "signup") {
-        const name = form.elements.name.value.trim();
-        if (!name) throw new Error("اكتب اسمك الكامل.");
-        if (password !== form.elements.confirmPassword.value) {
-          throw new Error("كلمتا المرور غير متطابقتين.");
-        }
-        const { data, error } = await client.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: name },
-            emailRedirectTo: new URL("login.html", window.location.href).href
+      return new Date(iso).toLocaleString("ar-EG", { timeZone: "Africa/Cairo", dateStyle: "medium", timeStyle: "short" });
+    } catch (e) { return iso; }
+  };
+
+  E.banner = function (msg) {
+    var b = document.createElement("p");
+    b.className = "auth-message";
+    b.style.cssText = "margin:0;border-radius:0;text-align:center;";
+    b.textContent = msg;
+    document.body.insertBefore(b, document.body.firstChild);
+  };
+
+  E.getProfile = function (uid) {
+    return client.from("profiles").select("id, username, display_name, role").eq("id", uid).maybeSingle()
+      .then(function (r) { return r.data || null; });
+  };
+
+  E.ready = (function () {
+    if (!client) return Promise.resolve(null);
+    return client.auth.getSession().then(function (r) {
+      var session = r.data && r.data.session;
+      if (!session) { try { localStorage.removeItem("ecumt-auth"); } catch (e) {} return null; }
+      return E.getProfile(session.user.id).then(function (profile) {
+        return { user: session.user, profile: profile };
+      });
+    }).catch(function () { return null; });
+  })();
+
+  E.signOut = function () {
+    var done = function () { try { localStorage.removeItem("ecumt-auth"); } catch (e) {} };
+    if (!client) { done(); return Promise.resolve(); }
+    return client.auth.signOut().then(done, done);
+  };
+
+  E.saveSubmission = function (row) {
+    if (!client) return Promise.reject(new Error("not configured"));
+    return client.from("submissions").insert(row).then(function (r) {
+      if (r.error) throw r.error;
+    });
+  };
+
+  /* page guards */
+  var mode = document.body && document.body.getAttribute("data-auth");
+  if (mode) {
+    if (!client) {
+      E.banner("الموقع لسه مش متوصل بقاعدة البيانات. راجع ملف config.js.");
+    } else {
+      E.ready.then(function (s) {
+        if (!s) { location.replace("login.html"); return; }
+        if (mode === "teacher" && (!s.profile || s.profile.role !== "teacher")) { location.replace("index.html"); return; }
+        if (s.profile && s.profile.role === "teacher") {
+          var nav = document.querySelector(".nav");
+          if (nav && !nav.querySelector('[href="admin.html"]')) {
+            var a = document.createElement("a");
+            a.className = "nav__link" + (mode === "teacher" ? " is-active" : "");
+            a.href = "admin.html";
+            a.textContent = "لوحة المعلم";
+            nav.appendChild(a);
           }
-        });
-        if (error) throw error;
-        if (!data.session) {
-          showMessage("تم إنشاء الحساب. افتح رسالة التأكيد في بريدك، ثم ارجع وسجّل الدخول.", "success");
-          return;
         }
-        showMessage("تم إنشاء حسابك. جاري فتح الموقع…", "success");
-      } else {
-        const { error } = await client.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        showMessage("تم تسجيل الدخول. جاري فتح الموقع…", "success");
-      }
-      window.setTimeout(() => { window.location.href = "index.html"; }, 800);
-    } catch (error) {
-      showMessage(messages[error.message] || error.message || "لم نتمكن من إتمام العملية.");
-    } finally {
-      submitButton.disabled = false;
+      });
     }
-  });
-
-  resetButton?.addEventListener("click", async () => {
-    const email = form.elements.email.value.trim();
-    if (!email) {
-      showMessage("اكتب بريدك الإلكتروني أولًا لإرسال رابط إعادة تعيين كلمة المرور.");
-      form.elements.email.focus();
-      return;
-    }
-    try {
-      const redirectTo = new URL("reset-password.html", window.location.href).href;
-      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
-      if (error) throw error;
-      showMessage("أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك.", "success");
-    } catch (error) {
-      showMessage(messages[error.message] || "تعذّر إرسال رابط إعادة التعيين.");
-    }
-  });
-
-  updateForm?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!updateForm.reportValidity()) return;
-    submitButton.disabled = true;
-    try {
-      const password = updateForm.elements.password.value;
-      if (password !== updateForm.elements.confirmPassword.value) {
-        throw new Error("كلمتا المرور غير متطابقتين.");
-      }
-      const { error } = await client.auth.updateUser({ password });
-      if (error) throw error;
-      showMessage("تم تغيير كلمة المرور. يمكنك تسجيل الدخول الآن.", "success");
-      window.setTimeout(() => { window.location.href = "login.html"; }, 1000);
-    } catch (error) {
-      showMessage(messages[error.message] || error.message || "تعذّر تغيير كلمة المرور.");
-    } finally {
-      submitButton.disabled = false;
-    }
-  });
-}
+  }
+})();

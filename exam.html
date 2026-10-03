@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>الناتج الخامس — الانكماش والخسائر | ECUMT 3-01</title>
+<title>الامتحان | ECUMT 3-01</title>
 <script>
 (function () {
   try {
@@ -38,9 +38,9 @@ try {
       </span>
     </a>
     <nav class="nav" aria-label="main">
-      <a class="nav__link is-active" href="index.html">النواتج</a>
+      <a class="nav__link" href="index.html">النواتج</a>
       <a class="nav__link" href="index.html#video">الفيديو</a>
-      <a class="nav__link" href="exams.html">الامتحانات</a>
+      <a class="nav__link is-active" href="exams.html">الامتحانات</a>
       <a class="nav__link" href="leaderboard.html">المتصدرين</a>
     </nav>
     <div class="actions">
@@ -56,42 +56,16 @@ try {
 <main>
   <section class="pagehead">
     <div class="pagehead__inner">
-      <span class="kicker">OUTCOME 05</span>
-      <h1>يتعرف على مفهوم الانكماش والخسائر داخل بيئة التجارة الحديثة</h1>
-      <p>إزاي بنحسب الانكماش والخسائر في القوائم المالية، وإيه أسباب العجز والهالك، وإزاي نحمي أصول المتجر.</p>
+      <span class="kicker">EXAM</span>
+      <h1 id="examTitle">الامتحان</h1>
+      <p id="examSub"></p>
     </div>
   </section>
 
   <div class="content">
-    <section class="block">
-      <h2 class="block__title">الدورة المالية والانكماش</h2>
-      <p class="lead">كيفية حساب الانكماش والخسائر في القوائم المالية.</p>
-      <p class="note"><strong>الجدارات المرتبطة:</strong> فهم وإدارة الخسائر والهالك والانكماش داخل المتجر للحفاظ على الأرباح والاستمرارية.</p>
-    </section>
-
-    <section class="block">
-      <h2 class="block__title">أسباب العجز والهالك</h2>
-      <p class="lead">الوقوف على الأسباب المؤدية للعجز وتلف المنتجات في السوبرماركت والهايبرماركت.</p>
-    </section>
-
-    <section class="block">
-      <h2 class="block__title">الإجراءات الوقائية</h2>
-      <p class="lead">تطبيق الإجراءات والسياسات الوقائية لحماية الأصول، خفض الخسائر، وزيادة صافي أرباح المنشأة.</p>
-    </section>
+    <div class="block result" id="examResult" hidden></div>
+    <div id="examRoot"></div>
   </div>
-
-  <section class="content content--tight">
-    <div class="block block--exam">
-      <h2 class="block__title">اختبر نفسك</h2>
-      <p class="lead">خلصت المذاكرة؟ حل امتحان الناتج ده وشوف مستواك.</p>
-      <div><a class="btn btn--primary" href="exam.html?e=5">ابدأ امتحان الناتج</a></div>
-    </div>
-  </section>
-
-  <nav class="pagenav" aria-label="التنقل بين النواتج">
-    <a class="btn btn--ghost" href="outcome-4.html">الناتج السابق</a>
-    <a class="btn btn--primary" href="index.html">الرئيسية</a>
-  </nav>
 </main>
 
 <footer class="footer">
@@ -102,6 +76,8 @@ try {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
+<script src="exams-data.js"></script>
+<script src="exam.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

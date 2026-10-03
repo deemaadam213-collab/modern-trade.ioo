@@ -14,7 +14,7 @@
 </script>
 <script>
 try {
-  if (sessionStorage.getItem("ecumt-login") !== "1") location.replace("login.html");
+  if (!localStorage.getItem("ecumt-auth")) location.replace("login.html");
 } catch (e) {}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,7 +22,7 @@ try {
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body data-auth="required">
 
 <header class="topbar">
   <div class="topbar__inner">
@@ -40,6 +40,8 @@ try {
     <nav class="nav" aria-label="main">
       <a class="nav__link is-active" href="index.html">النواتج</a>
       <a class="nav__link" href="index.html#video">الفيديو</a>
+      <a class="nav__link" href="exams.html">الامتحانات</a>
+      <a class="nav__link" href="leaderboard.html">المتصدرين</a>
     </nav>
     <div class="actions">
       <button id="themeBtn" class="iconbtn" type="button" aria-label="تبديل المظهر">
@@ -127,6 +129,14 @@ try {
     </section>
   </div>
 
+  <section class="content content--tight">
+    <div class="block block--exam">
+      <h2 class="block__title">اختبر نفسك</h2>
+      <p class="lead">خلصت المذاكرة؟ حل امتحان الناتج ده وشوف مستواك.</p>
+      <div><a class="btn btn--primary" href="exam.html?e=3">ابدأ امتحان الناتج</a></div>
+    </div>
+  </section>
+
   <nav class="pagenav" aria-label="التنقل بين النواتج">
     <a class="btn btn--ghost" href="outcome-2.html">الناتج السابق</a>
     <a class="btn btn--primary" href="outcome-4.html">الناتج التالي</a>
@@ -138,6 +148,9 @@ try {
   <p class="footer__super">تحت إشراف ميس نرمين</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

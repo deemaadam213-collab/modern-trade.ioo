@@ -12,11 +12,6 @@
   } catch (e) {}
 })();
 </script>
-<script>
-try {
-  if (sessionStorage.getItem("ecumt-login") === "1") location.replace("index.html");
-} catch (e) {}
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -54,42 +49,48 @@ try {
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
 <script>
 (function () {
   "use strict";
-
+  var E = window.ECUMT;
   var form = document.getElementById("loginForm");
   var error = document.getElementById("loginError");
+  var btn = form.querySelector("button[type=submit]");
 
-  function loadUsers() {
-    try { return JSON.parse(localStorage.getItem("ecumt-users") || "{}"); }
-    catch (e) { return {}; }
+  function fail(msg) { error.textContent = msg; error.hidden = false; }
+
+  function go(profile) {
+    location.href = profile && profile.role === "teacher" ? "admin.html" : "index.html";
   }
+
+  if (!E.client) fail("الموقع لسه مش متوصل بقاعدة البيانات. راجع ملف config.js.");
+  else E.ready.then(function (s) { if (s) go(s.profile); });
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
+    error.hidden = true;
+    if (!E.client) return fail("الموقع لسه مش متوصل بقاعدة البيانات.");
     var u = document.getElementById("loginUser").value.trim();
     var p = document.getElementById("loginPass").value;
+    if (!u || !p) return fail("اكتب اسم المستخدم والباسورد.");
 
-    var users = loadUsers();
-    var record = users[u.toLowerCase()];
-
-    if (record && record.password === p) {
-      try { sessionStorage.setItem("ecumt-login", "1"); } catch (err) {}
-      location.href = "index.html";
-    } else {
-      if (Object.keys(users).length === 0) {
-        error.textContent = "مفيش حسابات لسه — اعمل حساب جديد الأول.";
-      } else {
-        error.textContent = "اليوزرنيم أو الباسورد غلط، حاول تاني.";
+    btn.disabled = true;
+    E.client.auth.signInWithPassword({ email: E.toEmail(u), password: p }).then(function (r) {
+      if (r.error || !r.data.user) {
+        btn.disabled = false;
+        fail("اليوزرنيم أو الباسورد غلط، حاول تاني.");
+        document.getElementById("loginPass").value = "";
+        return;
       }
-      error.hidden = false;
-      form.reset();
-      document.getElementById("loginUser").focus();
-    }
+      E.getProfile(r.data.user.id).then(go, function () { go(null); });
+    }, function () { btn.disabled = false; fail("حصلت مشكلة في الاتصال، جرب تاني."); });
   });
 })();
 </script>
+
 
 </body>
 </html>

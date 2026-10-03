@@ -14,7 +14,7 @@
 </script>
 <script>
 try {
-  if (sessionStorage.getItem("ecumt-login") !== "1") location.replace("login.html");
+  if (!localStorage.getItem("ecumt-auth")) location.replace("login.html");
 } catch (e) {}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,7 +22,7 @@ try {
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body data-auth="required">
 
 <header class="topbar">
   <div class="topbar__inner">
@@ -40,6 +40,8 @@ try {
     <nav class="nav" aria-label="main">
       <a class="nav__link is-active" href="index.html">النواتج</a>
       <a class="nav__link" href="#video">الفيديو</a>
+      <a class="nav__link" href="exams.html">الامتحانات</a>
+      <a class="nav__link" href="leaderboard.html">المتصدرين</a>
     </nav>
     <div class="actions">
       <button id="themeBtn" class="iconbtn" type="button" aria-label="تبديل المظهر">
@@ -139,6 +141,15 @@ try {
     </div>
   </section>
 
+  <section id="exams" class="section">
+    <div class="section__head">
+      <span class="kicker">الامتحانات</span>
+      <h2>اختبر نفسك بعد المذاكرة</h2>
+      <p class="section__lede">امتحان لكل ناتج، وامتحان شامل على الوحدة كلها. أسئلة اختيار من متعدد وصح وغلط وأكمل.</p>
+    </div>
+    <a class="btn btn--primary" href="exams.html">افتح الامتحانات</a>
+  </section>
+
   <section id="video" class="video">
     <div class="section__head">
       <span class="kicker">فيديو الشرح</span>
@@ -159,6 +170,9 @@ try {
   <p class="footer__super">تحت إشراف ميس نرمين</p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

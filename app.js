@@ -15,8 +15,9 @@
 
   document.querySelectorAll("[data-logout]").forEach(function (button) {
     button.addEventListener("click", function () {
-      try { sessionStorage.removeItem("ecumt-login"); } catch (e) {}
-      window.location.href = "login.html";
+      var go = function () { window.location.href = "login.html"; };
+      if (window.ECUMT && window.ECUMT.signOut) window.ECUMT.signOut().then(go, go);
+      else go();
     });
   });
 })();
