@@ -91,33 +91,29 @@
     if (p !== pass2El.value) return fail("الباسوردين مش متطابقين، راجعهم.", pass2El);
 
     btn.disabled = true;
-    E.client.auth.signUp({ email: E.toEmail(u), password: p }).then(function (r) {
+    E.hashPassword(u, p).then(function (hash) {
+      return E.client.rpc("signup_user", { p_username: u, p_password_hash: hash, p_display_name: u });
+    }).then(function (r) {
       if (r.error) {
-        // DEBUG: اطبع تفاصيل الخطأ الحقيقي في الـ Console عشان نشوف السبب الفعلي
-        console.error("SUPABASE SIGNUP ERROR:", r.error.status, r.error.message, r.error);
-
-        if (/registered|exists/i.test(r.error.message)) return fail("اليوزرنيم ده موجود قبل كده، اختار غيره.", userEl);
-        // مؤقتًا: اعرض رسالة Supabase الحقيقية بدل الرسالة العامة، عشان نعرف السبب بالظبط
+        console.error("SIGNUP ERROR:", r.error);
+        if (/USERNAME_TAKEN/i.test(r.error.message)) return fail("اليوزرنيم ده موجود قبل كده، اختار غيره.", userEl);
         return fail("معرفناش نعمل الحساب: " + r.error.message, userEl);
       }
-      if (!r.data.session) return fail("الحساب اتعمل بس محتاج تأكيد. المعلم لازم يقفل Confirm email من إعدادات Supabase.");
-      return E.client.from("profiles").insert({ id: r.data.user.id, username: u.toLowerCase(), display_name: u })
-        .then(function (pr) {
-          if (pr.error) {
-            console.error("SUPABASE PROFILE INSERT ERROR:", pr.error.code, pr.error.message, pr.error);
-            return E.client.auth.signOut().then(function () {
-              fail(pr.error.code === "23505" ? "اليوزرنيم ده موجود قبل كده، اختار غيره." : "معرفناش نكمل إنشاء الحساب: " + pr.error.message, userEl);
-            });
-          }
-          location.href = "index.html";
-        });
+      var row = r.data && r.data[0];
+      if (!row) return fail("معرفناش نعمل الحساب. جرب تاني.", userEl);
+      E.setSession({ id: row.id, username: u.toLowerCase(), display_name: row.display_name, role: row.role });
+      location.href = "index.html";
     }, function (err) {
-      console.error("SUPABASE NETWORK ERROR:", err);
+      console.error("SIGNUP NETWORK ERROR:", err);
       fail("حصلت مشكلة في الاتصال، جرب تاني.");
     });
   });
 })();
 </script>
+
+
+</body>
+</html>
 
 
 </body>
