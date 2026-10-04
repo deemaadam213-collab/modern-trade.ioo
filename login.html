@@ -4,102 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>تسجيل الدخول — ECUMT 3-01</title>
-<script>
-(function () {
-  try {
-    var t = localStorage.getItem("ecumt-theme");
-    if (t) document.documentElement.setAttribute("data-theme", t);
-  } catch (e) {}
-})();
-</script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
 <main class="auth-page">
   <div class="auth-card">
-    <div class="auth-card__logo">
-      <svg class="brand__mark" viewBox="0 0 44 44" width="52" height="52" aria-hidden="true">
-        <rect x="4" y="4" width="36" height="36" rx="10" class="mark-bg"/>
-        <path d="M13 27 L22 13 L31 27 Z" class="mark-shape"/>
-        <rect x="19.5" y="23" width="5" height="8" rx="1" class="mark-dot"/>
-      </svg>
-    </div>
-    <h1>تسجيل الدخول</h1>
-    <p class="auth-intro">الملخص الدراسي لوحدة ECUMT 3-01 — ادخل باليوزرنيم والباسورد بتاعك.</p>
-
-    <p class="auth-message" id="loginError" hidden></p>
-
-    <form id="loginForm" novalidate>
-      <label class="auth-field">
-        اسم المستخدم
-        <input type="text" id="loginUser" autocomplete="username" required />
-      </label>
-      <label class="auth-field">
-        الباسورد
-        <input type="password" id="loginPass" autocomplete="current-password" required />
-      </label>
-      <button class="btn btn--primary auth-submit" type="submit">دخول</button>
-    </form>
-
-    <p class="auth-switch">مش عندك حساب؟ <a href="signup.html">اعمل حساب جديد</a></p>
+    <h1>الموقع يعمل بدون حسابات</h1>
+    <p class="auth-intro">افتح الموقع كطالب. نتيجتك تتحفظ على هذا الجهاز والمتصفح فقط، ومش بتتشارك مع المعلم أو أجهزة تانية.</p>
+    <a class="btn btn--primary auth-submit" href="index.html">ابدأ المذاكرة</a>
   </div>
 </main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js"></script>
-<script src="auth.js"></script>
-<script>
-(function () {
-  "use strict";
-  var E = window.ECUMT;
-  var form = document.getElementById("loginForm");
-  var error = document.getElementById("loginError");
-  var btn = form.querySelector("button[type=submit]");
-
-  function fail(msg) { error.textContent = msg; error.hidden = false; }
-
-  function go(role) {
-    location.href = role === "teacher" ? "admin.html" : "index.html";
-  }
-
-  if (!E.client) fail("الموقع لسه مش متوصل بقاعدة البيانات. راجع ملف config.js.");
-  else E.ready.then(function (s) { if (s) go(s.profile.role); });
-
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    error.hidden = true;
-    if (!E.client) return fail("الموقع لسه مش متوصل بقاعدة البيانات.");
-    var u = document.getElementById("loginUser").value.trim();
-    var p = document.getElementById("loginPass").value;
-    if (!u || !p) return fail("اكتب اسم المستخدم والباسورد.");
-
-    btn.disabled = true;
-    E.hashPassword(u, p).then(function (hash) {
-      return E.client.rpc("login_user", { p_username: u, p_password_hash: hash });
-    }).then(function (r) {
-      if (r.error || !r.data || !r.data.length) {
-        btn.disabled = false;
-        if (r.error) console.error("LOGIN ERROR:", r.error);
-        fail("اليوزرنيم أو الباسورد غلط، حاول تاني.");
-        document.getElementById("loginPass").value = "";
-        return;
-      }
-      var row = r.data[0];
-      E.setSession({ id: row.id, username: u.toLowerCase(), display_name: row.display_name, role: row.role });
-      go(row.role);
-    }, function (err) {
-      console.error("LOGIN NETWORK ERROR:", err);
-      btn.disabled = false;
-      fail("حصلت مشكلة في الاتصال، جرب تاني.");
-    });
-  });
-})();
-</script>
-
-
 </body>
 </html>

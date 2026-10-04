@@ -1,4 +1,4 @@
-/* ECUMT 3-01 — weekly leaderboard + my attempts */
+/* ECUMT 3-01 — this-device leaderboard + local attempts */
 (function () {
   "use strict";
   var E = window.ECUMT;
@@ -6,7 +6,7 @@
   var meEl = document.getElementById("meCard");
   var tabs = document.querySelectorAll("[data-week]");
   var attemptsEl = document.getElementById("attempts");
-  if (!E || !E.client) return;
+  if (!E || !E.weeklyLeaderboard) return;
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -39,24 +39,18 @@
       boardEl.appendChild(row);
       if (r.is_me) mine = { rank: i + 1, points: r.points };
     });
-    if (mine) {
-      meEl.appendChild(el("p", "me__line", "ترتيبك: " + mine.rank + " — " + mine.points + " نقطة"));
-    } else if (weeksAgo === 0) {
-      meEl.appendChild(el("p", "me__line", "لسه معملتش امتحان الأسبوع ده. حل امتحان وهتظهر في القايمة."));
-    }
+    if (mine) meEl.appendChild(el("p", "me__line", "ترتيبك: " + mine.rank + " — " + mine.points + " نقطة"));
+    else if (weeksAgo === 0) meEl.appendChild(el("p", "me__line", "لسه معملتش امتحان الأسبوع ده. حل امتحان وهتظهر في القايمة."));
   }
 
   function load(weeksAgo) {
     boardEl.textContent = "";
     boardEl.appendChild(el("p", "note", "جاري التحميل..."));
-    E.client.rpc("weekly_leaderboard", { weeks_ago: weeksAgo }).then(function (r) {
-      if (r.error) {
+    E.weeklyLeaderboard(weeksAgo).then(function (rows) { renderBoard(rows || [], weeksAgo); })
+      .catch(function () {
         boardEl.textContent = "";
-        boardEl.appendChild(el("p", "note", "مقدرناش نحمل القايمة. اتأكد إنك مسجل دخول."));
-        return;
-      }
-      renderBoard(r.data || [], weeksAgo);
-    });
+        boardEl.appendChild(el("p", "note", "مقدرناش نقرأ النتائج المحفوظة في المتصفح."));
+      });
   }
 
   tabs.forEach(function (t) {
@@ -69,30 +63,25 @@
   });
 
   function loadAttempts(uid) {
-    E.client.from("submissions")
-      .select("id, exam_id, total, correct, teacher_correct, reviewed, created_at")
-      .eq("user_id", uid).order("created_at", { ascending: false }).limit(15)
-      .then(function (r) {
-        attemptsEl.textContent = "";
-        if (r.error || !r.data || !r.data.length) {
-          attemptsEl.appendChild(el("p", "note", "لسه معملتش أي محاولة."));
-          return;
-        }
-        r.data.forEach(function (s) {
-          var final = s.teacher_correct !== null ? s.teacher_correct : s.correct;
-          var row = el("li", "att__row");
-          row.appendChild(el("span", "att__name", E.examName(s.exam_id)));
-          row.appendChild(el("span", "att__score", final + " / " + s.total));
-          row.appendChild(el("span", "att__state" + (s.reviewed ? " is-reviewed" : ""), s.reviewed ? "راجعها المعلم" : "تصحيح تلقائي"));
-          row.appendChild(el("span", "att__date", E.formatDate(s.created_at)));
-          attemptsEl.appendChild(row);
-        });
+    E.getUserSubmissions(uid).then(function (rows) {
+      attemptsEl.textContent = "";
+      if (!rows.length) { attemptsEl.appendChild(el("p", "note", "لسه معملتش أي محاولة.")); return; }
+      rows.forEach(function (s) {
+        var final = s.teacher_correct !== null ? s.teacher_correct : s.correct;
+        var row = el("li", "att__row");
+        row.appendChild(el("span", "att__name", E.examName(s.exam_id)));
+        row.appendChild(el("span", "att__score", final + " / " + s.total));
+        row.appendChild(el("span", "att__state" + (s.reviewed ? " is-reviewed" : ""), s.reviewed ? "راجعها المعلم" : "تصحيح تلقائي"));
+        row.appendChild(el("span", "att__date", E.formatDate(s.created_at)));
+        attemptsEl.appendChild(row);
       });
+    }).catch(function () { attemptsEl.appendChild(el("p", "note", "مقدرناش نحمل محاولاتك.")); });
   }
 
-  E.ready.then(function (s) {
-    if (!s) return;
+  E.ready.then(function (session) {
+    if (!session) return;
     load(0);
-    loadAttempts(s.user.id);
+    loadAttempts(session.user.uid);
   });
 })();
+

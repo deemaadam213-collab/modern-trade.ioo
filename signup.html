@@ -4,117 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>حساب جديد — ECUMT 3-01</title>
-<script>
-(function () {
-  try {
-    var t = localStorage.getItem("ecumt-theme");
-    if (t) document.documentElement.setAttribute("data-theme", t);
-  } catch (e) {}
-})();
-</script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
 <main class="auth-page">
   <div class="auth-card">
-    <div class="auth-card__logo">
-      <svg class="brand__mark" viewBox="0 0 44 44" width="52" height="52" aria-hidden="true">
-        <rect x="4" y="4" width="36" height="36" rx="10" class="mark-bg"/>
-        <path d="M13 27 L22 13 L31 27 Z" class="mark-shape"/>
-        <rect x="19.5" y="23" width="5" height="8" rx="1" class="mark-dot"/>
-      </svg>
-    </div>
-    <h1>حساب جديد</h1>
-    <p class="auth-intro">اعمل يوزرنيم وباسورد خاصين بيك عشان تدخل على الملخص.</p>
-
-    <p class="auth-message" id="signupError" hidden></p>
-
-    <form id="signupForm" novalidate>
-      <label class="auth-field">
-        اسم المستخدم
-        <input type="text" id="signupUser" autocomplete="username" required />
-      </label>
-      <label class="auth-field">
-        الباسورد
-        <input type="password" id="signupPass" autocomplete="new-password" required />
-      </label>
-      <label class="auth-field">
-        تأكيد الباسورد
-        <input type="password" id="signupPass2" autocomplete="new-password" required />
-      </label>
-      <button class="btn btn--primary auth-submit" type="submit">اعمل الحساب</button>
-    </form>
-
-    <p class="auth-switch">عندك حساب؟ <a href="login.html">سجل دخولك من هنا</a></p>
+    <h1>لا تحتاج إلى إنشاء حساب</h1>
+    <p class="auth-intro">النسخة المحلية لا تستخدم حسابات. درجاتك محفوظة في هذا الجهاز والمتصفح فقط.</p>
+    <a class="btn btn--primary auth-submit" href="index.html">تابع كزائر</a>
   </div>
 </main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js"></script>
-<script src="auth.js"></script>
-<script>
-(function () {
-  "use strict";
-  var E = window.ECUMT;
-  var form = document.getElementById("signupForm");
-  var error = document.getElementById("signupError");
-  var btn = form.querySelector("button[type=submit]");
-
-  function fail(msg, el) {
-    error.textContent = msg;
-    error.hidden = false;
-    btn.disabled = false;
-    if (el) el.focus();
-  }
-
-  if (!E.client) fail("الموقع لسه مش متوصل بقاعدة البيانات. راجع ملف config.js.");
-  else E.ready.then(function (s) { if (s) location.replace("index.html"); });
-
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    error.hidden = true;
-    if (!E.client) return fail("الموقع لسه مش متوصل بقاعدة البيانات.");
-
-    var userEl = document.getElementById("signupUser");
-    var passEl = document.getElementById("signupPass");
-    var pass2El = document.getElementById("signupPass2");
-    var u = userEl.value.trim();
-    var p = passEl.value;
-
-    if (u.length < 2) return fail("اكتب اسم مستخدم من حرفين على الأقل.", userEl);
-    if (u.indexOf("@") !== -1) return fail("اسم المستخدم مينفعش يحتوي على @.", userEl);
-    if (p.length < 6) return fail("الباسورد لازم يكون 6 حروف على الأقل.", passEl);
-    if (p !== pass2El.value) return fail("الباسوردين مش متطابقين، راجعهم.", pass2El);
-
-    btn.disabled = true;
-    E.hashPassword(u, p).then(function (hash) {
-      return E.client.rpc("signup_user", { p_username: u, p_password_hash: hash, p_display_name: u });
-    }).then(function (r) {
-      if (r.error) {
-        console.error("SIGNUP ERROR:", r.error);
-        if (/USERNAME_TAKEN/i.test(r.error.message)) return fail("اليوزرنيم ده موجود قبل كده، اختار غيره.", userEl);
-        return fail("معرفناش نعمل الحساب: " + r.error.message, userEl);
-      }
-      var row = r.data && r.data[0];
-      if (!row) return fail("معرفناش نعمل الحساب. جرب تاني.", userEl);
-      E.setSession({ id: row.id, username: u.toLowerCase(), display_name: row.display_name, role: row.role });
-      location.href = "index.html";
-    }, function (err) {
-      console.error("SIGNUP NETWORK ERROR:", err);
-      fail("حصلت مشكلة في الاتصال، جرب تاني.");
-    });
-  });
-})();
-</script>
-
-
-</body>
-</html>
-
-
 </body>
 </html>

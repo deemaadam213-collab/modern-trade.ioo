@@ -1,4 +1,4 @@
-/* ECUMT 3-01 — shared UI: theme toggle + logout */
+/* ECUMT 3-01 — shared UI: theme toggle */
 (function () {
   "use strict";
 
@@ -12,12 +12,4 @@
       try { localStorage.setItem("ecumt-theme", next); } catch (e) {}
     });
   }
-
-  document.querySelectorAll("[data-logout]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      var go = function () { window.location.href = "login.html"; };
-      if (window.ECUMT && window.ECUMT.signOut) window.ECUMT.signOut().then(go, go);
-      else go();
-    });
-  });
 })();
