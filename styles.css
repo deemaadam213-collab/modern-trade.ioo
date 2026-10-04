@@ -706,3 +706,32 @@ textarea.qfill { resize: vertical; }
   .lb__row { grid-template-columns: 34px 1fr auto; }
   .lb__exams { display: none; }
 }
+
+
+/* ---------- organization charts ---------- */
+.org-chart { width: 100%; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; overflow-x: auto; }
+.org-node { display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px 16px; min-height: 44px; border: 1px solid color-mix(in srgb, var(--brand) 52%, var(--line)); border-radius: 12px; background: color-mix(in srgb, var(--brand) 10%, var(--surface-2)); color: var(--ink); font-weight: 700; }
+.org-node--top { min-width: min(100%, 250px); }
+.org-node--ceo { min-width: min(100%, 280px); background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.org-node--deputy { min-width: min(100%, 250px); border-color: var(--amber); }
+.org-line { width: 2px; height: 22px; background: color-mix(in srgb, var(--brand) 55%, var(--line)); flex: none; }
+.org-branches { position: relative; width: 100%; display: grid; grid-template-columns: repeat(3,minmax(190px,1fr)); gap: 14px; padding-top: 24px; }
+.org-branches::before { content:""; position:absolute; top:0; inset-inline:16%; border-top:2px solid color-mix(in srgb,var(--brand) 55%,var(--line)); }
+.org-branch { position:relative; background:var(--surface-2); border:1px solid var(--line); border-radius:14px; padding:16px; }
+.org-branch::before { content:""; position:absolute; top:-25px; inset-inline-start:50%; height:24px; border-inline-start:2px solid color-mix(in srgb,var(--brand) 55%,var(--line)); }
+.org-branch h3 { margin:0 0 12px; color:var(--brand); font-size:1rem; }
+.org-branch--support h3 { color:var(--amber); }
+.org-branch--commerce h3 { color:var(--brand-deep); }
+.org-branch ul { margin:0; padding:0; list-style:none; display:grid; gap:8px; }
+.org-branch li { padding:8px 10px; border-radius:9px; background:var(--surface); border:1px solid var(--line); font-size:.9rem; }
+.org-branches--departments .org-branch { text-align:center; }
+.org-node--role { min-height:38px; font-size:.88rem; padding:7px 10px; }
+.quiz-form { gap:18px; }
+.quiz-item { padding:16px; border:1px solid var(--line); border-radius:13px; background:var(--surface-2); display:grid; gap:12px; }
+.quiz-item.is-right { border-color:var(--ok); }
+.quiz-item.is-wrong { border-color:var(--bad); }
+.tf-options { display:flex; flex-wrap:wrap; gap:8px; }
+.tf-options .qopt { min-width:110px; }
+.quiz-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.quiz-result { flex-basis:100%; color:var(--brand); font-weight:700; }
+@media(max-width:700px){.org-branches{grid-template-columns:1fr;gap:24px;padding-top:0}.org-branches::before{display:none}.org-branch::before{display:none}.nav{overflow-x:auto}.nav__link{flex:none;white-space:nowrap}.org-chart{align-items:stretch}.org-node--top,.org-node--ceo,.org-node--deputy{align-self:center}}
